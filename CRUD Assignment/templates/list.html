@@ -1,0 +1,68 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    List
+{% endblock %}
+
+{% block main %}
+    <div class="col-12 p-5">
+        <div id="list_container" class="col-12 p-0">
+            <h1 class="fw-bold">List</h1>
+            
+            <div class="d-flex justify-content-between align-items-center mt-5">
+                <p class="fw-bold">Students</p>
+                <div class="row">
+                    <button class="btn btn-dark mx-1" style="width: 100px; max-height: 40px;" onclick="go_to_page('register')">Register</button>
+                    <button class="btn btn-success" style="width: 100px; max-height: 40px;" onclick="record()">
+                        Download
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-responsive mt-3">
+                <table id="student_table" class="table">
+                    <thead>
+                        <tr class="d-flex">
+                            <th scope="col" class="d-flex align-items-center col-1">#</th>
+                            <th scope="col" class="d-flex align-items-center col-2">Name</th>
+                            <th scope="col" class="d-flex align-items-center col-2">NRC</th>
+                            <th scope="col" class="d-flex align-items-center col-2">Date of Birth</th>
+                            <th scope="col" class="d-flex align-items-center col-2">Phone Number</th>
+                            <th scope="col" class="d-flex align-items-center col-2">Email</th>
+                            <th scope="col" class="d-flex align-items-center col-2">Gender</th>
+                            <th scope="col" class="d-flex align-items-center col-2">Nationality</th>
+                            <th scope="col" class="d-flex align-items-center col-3">Permanent Address</th>
+                        </tr>
+                    </thead>
+    
+                    <tbody id="student_table_body"></tbody>
+                </table>
+            </div>
+
+            <!-- <div class="table-responsive mt-5">
+                <p class="fw-bold">Details</p>
+                <table id="details_table" class="table">
+                    <thead>
+                        <tr class="d-flex">
+                            <th scope="col" class="d-flex align-items-center col-1">#</th>
+                            <th scope="col" class="d-flex align-items-center col-2">Student ID</th>
+                            <th scope="col" class="d-flex align-items-center col-2">Academic Year</th>
+                            <th scope="col" class="d-flex align-items-center col-2">Mark 1</th>
+                            <th scope="col" class="d-flex align-items-center col-2">Mark 2</th>
+                            <th scope="col" class="d-flex align-items-center col-2">Mark 3</th>
+                            <th scope="col" class="d-flex align-items-center col-2">Remark</th>
+                        </tr>
+                    </thead>
+    
+                    <tbody id="details_table_body"></tbody>
+                </table>
+            </div> -->
+
+            <!-- <div class="d-flex justify-content-end col-12 pt-4">
+                <button class="btn btn-success" style="width: 100px; max-height: 40px;" onclick="record()">
+                    Download
+                </button>
+            </div> -->
+        </div>
+    </div>
+{% endblock %}

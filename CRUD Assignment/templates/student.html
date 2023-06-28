@@ -1,0 +1,75 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Student
+{% endblock %}
+
+{% block main %}
+    <div class="col-12 p-5">
+        <div id="student_container" class="col-12 p-0">
+            <h1 class="fw-bold">Register a student</h1>
+            
+            <form id="student_form" class="mt-5">
+                <div class="mb-3">
+                    <label for="student_name" class="form-label">Student Name</label>
+                    <input id="student_name" class="form-control" placeholder="Eg: John Doe">
+                </div>
+    
+                <div class="mb-3">
+                    <label for="student_nrc" class="form-label">Student NRC</label>
+                    <input id="student_nrc" class="form-control" placeholder="Eg: 12/XXX(N)000000">
+                </div>
+    
+                <div class="mb-3">
+                    <label for="student_dob" class="form-label">Student Date of Birth</label>
+                    <input id="student_dob" class="form-control" placeholder="mm/dd/yyyy" type="date">
+                </div>
+    
+                <div class="mb-3">
+                    <label for="student_phone_no" class="form-label">Student Phone Number</label>
+                    <input id="student_phone_no" class="form-control" placeholder="Eg: 95912345678">
+                </div>
+    
+                <div class="mb-3">
+                    <label for="student_address" class="form-label">Student Contact Details</label>
+                    <input id="student_address" class="form-control" placeholder="Address">
+                </div>
+    
+                <div class="mb-3">
+                    <label for="student_email" class="form-label">Student Email</label>
+                    <input id="student_email" class="form-control" placeholder="Email">
+                </div>
+    
+                <div class="mb-3">
+                    <label for="student_gender" class="form-label">Gender</label>
+                    <select id="student_gender" class="form-select" aria-label="gender_select">
+                        <option selected disabled>Select gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                    </select>
+                </div>
+    
+                <div class="mb-3">
+                    <label for="student_nationality" class="form-label">Nationality</label>
+                    <select id="student_nationality" class="form-select" aria-label="nationality_select">
+                        <option selected disabled>Select nationality</option>
+                        <option value="local">Local</option>
+                        <option value="foreign">Foreign</option>
+                    </select>
+                </div>
+            </form>
+    
+            <div class="d-flex justify-content-end col-12">
+                <button class="btn btn-success mx-1" style="width: 100px; max-height: 40px;" onclick="register()">
+                    Register
+                </button>
+
+                <button class="btn btn-outline-secondary" style="width: 100px; max-height: 40px;"
+                    onclick="go_to_page('list')"
+                >
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+{% endblock %}
