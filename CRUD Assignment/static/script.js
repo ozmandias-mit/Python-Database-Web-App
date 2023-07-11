@@ -3,135 +3,151 @@ let students = [];
 let detail = {};
 let details = [];
 let remove_detail_id = null;
+let total_students = 0;
+let pagination_students = 0;
+let query_data = {
+    "search": "",
+    "page": 0
+};
+let back_pagination_page = -1;
+let back_pagination_students = -1;
 
 function register() {
-    let data = {
-        name: document.getElementById("student_name").value,
-        nrc: document.getElementById("student_nrc").value,
-        dob: document.getElementById("student_dob").value,
-        phone_no: document.getElementById("student_phone_no").value,
-        email: document.getElementById("student_email").value,
-        gender: document.getElementById("student_gender").value,
-        nationality: document.getElementById("student_nationality").value,
-        permanent_address: document.getElementById("student_address").value
-    }
-
-    let request = new XMLHttpRequest();
-    request.open("POST", '/register');
-    request.setRequestHeader("Content-Type", "application/json");
+    return new Promise(function(resolve, reject) {
+        let data = {
+            name: document.getElementById("student_name").value,
+            nrc: document.getElementById("student_nrc").value,
+            dob: document.getElementById("student_dob").value,
+            phone_no: document.getElementById("student_phone_no").value,
+            email: document.getElementById("student_email").value,
+            gender: document.getElementById("student_gender").value,
+            nationality: document.getElementById("student_nationality").value,
+            permanent_address: document.getElementById("student_address").value,
+            profile_picture: current_student && current_student["profile_picture"] ? current_student["profile_picture"] : null
+        }
     
-    request.onload = function() {
-        if(request.status >= 200 && request.status < 400) {
-            let response = JSON.parse(request.responseText);
-            current_student = response;
-            save_to_localStorage("student", current_student);
-            console.log("current_student: ", current_student);
-
-            let success_response = false;
-            
-            if(request.status == 200) {
-                success_response = true;
-            }
-
-            if(success_response) {
-                if(!document.getElementById("successful_registration")){
-                    let student_container = document.getElementById("student_container");
-                    let register_success_html = generate_html("register_success");
-                    student_container.innerHTML = student_container.innerHTML + register_success_html;
+        let request = new XMLHttpRequest();
+        request.open("POST", '/register');
+        request.setRequestHeader("Content-Type", "application/json");
+        
+        request.onload = function() {
+            if(request.status >= 200 && request.status < 400) {
+                let response = JSON.parse(request.responseText);
+                current_student = response;
+                save_to_localStorage("student", current_student);
+    
+                let success_response = false;
+                
+                if(request.status == 200) {
+                    success_response = true;
+                }
+    
+                if(success_response) {
+                    if(!document.getElementById("successful_registration")){
+                        let student_container = document.getElementById("student_container");
+                        let register_success_html = generate_html("register_success");
+                        student_container.innerHTML = student_container.innerHTML + register_success_html;
+                    }
+    
+                    setTimeout(async function() {
+                        let successful_registration_message = document.getElementById("successful_registration");
+                        student_container.removeChild(successful_registration_message);
+    
+                        let form_container = document.getElementById("form_container");
+                        let student_html = generate_html("student", current_student);
+                        let student_detail_html = generate_html("student_detail");
+                        form_container.innerHTML = student_html + student_detail_html;
+    
+                        let student_gender_selection = document.getElementById('student_gender');
+                        for(let i = 0; i < student_gender_selection.options.length; i++) {
+                            let option = student_gender_selection.options[i];
+                            if (option.value === current_student.gender) {
+                                option.selected = true;
+                                break;
+                            }
+                        }
+    
+                        let student_nationality_selection = document.getElementById('student_nationality');
+                        for(let i = 0; i < student_nationality_selection.options.length; i++) {
+                            let option = student_nationality_selection.options[i];
+                            if (option.value === current_student.nationality) {
+                                option.selected = true;
+                                break;
+                            }
+                        }
+    
+                        await check_student_details();
+                    }, 1000);
                 }
 
-                setTimeout(function() {
-                    let successful_registration_message = document.getElementById("successful_registration");
-                    student_container.removeChild(successful_registration_message);
-
-                    let form_container = document.getElementById("form_container");
-                    let student_html = generate_html("student", current_student);
-                    let student_detail_html = generate_html("student_detail");
-                    form_container.innerHTML = student_html + student_detail_html;
-
-                    let student_gender_selection = document.getElementById('student_gender');
-                    for(let i = 0; i < student_gender_selection.options.length; i++) {
-                        let option = student_gender_selection.options[i];
-                        if (option.value === current_student.gender) {
-                            option.selected = true;
-                            break;
-                        }
-                    }
-
-                    let student_nationality_selection = document.getElementById('student_nationality');
-                    for(let i = 0; i < student_nationality_selection.options.length; i++) {
-                        let option = student_nationality_selection.options[i];
-                        if (option.value === current_student.nationality) {
-                            option.selected = true;
-                            break;
-                        }
-                    }
-
-                    check_student_details();
-
-                    // go_to_page("student_detail");
-                }, 1000);
+                resolve("success");
+            } else {
+                console.error("error: ", response.status);
+                reject("error");
             }
-        } else {
-            console.error("error: ", response.status);
         }
-    }
-
-    request.onerror = function() {
-        console.error("Something went wrong while registering student!");
-    }
-
-    request.send(JSON.stringify(data));
+    
+        request.onerror = function() {
+            console.error("Something went wrong while registering student!");
+        }
+    
+        request.send(JSON.stringify(data));
+    });
 }
 
 
 function check_student_details() {
-    current_student = load_from_localStorage("student");
-
-    let data = {
-        id: current_student.id
-    };
-
-    let request = new XMLHttpRequest();
-    request.open("POST", "/get_details");
-    request.setRequestHeader("Content-Type", "application/json");
-
-    request.onload = function() {
-        if(request.status >= 200 && request.status < 400) {
-            let response = JSON.parse(request.responseText);
-            details = response
-            let new_details = load_from_localStorage("details");
-            if(new_details) {
-                details = details.concat(new_details);
-            }
-            details.forEach(function(detail) {
-                detail["detail_id"] = details.indexOf(detail);
-            })
-            save_to_localStorage("details", details);
-
-            let success_response = false;
-
-            if(request.status == 200) {
-                success_response = true;
-            }
-
-            if(success_response){
-                let student_detail_list = document.getElementById("student_detail_list");
+    return new Promise(function(resolve, reject) {
+        current_student = load_from_localStorage("student");
+    
+        let data = {
+            id: current_student.id
+        };
+    
+        let request = new XMLHttpRequest();
+        request.open("POST", "/get_details");
+        request.setRequestHeader("Content-Type", "application/json");
+    
+        request.onload = function() {
+            if(request.status >= 200 && request.status < 400) {
+                let response = JSON.parse(request.responseText);
+                details = response
+                let new_details = load_from_localStorage("details");
+                if(new_details) {
+                    details = details.concat(new_details);
+                }
                 details.forEach(function(detail) {
-                    let student_detail_data_html = generate_html("student_detail_data", detail);
-                    student_detail_list.innerHTML = student_detail_list.innerHTML + student_detail_data_html.trim();
-                });
+                    detail["detail_id"] = details.indexOf(detail);
+                })
+                save_to_localStorage("details", details);
+    
+                let success_response = false;
+    
+                if(request.status == 200) {
+                    success_response = true;
+                }
+    
+                if(success_response){
+                    let student_detail_list = document.getElementById("student_detail_list");
+                    details.forEach(function(detail) {
+                        let student_detail_data_html = generate_html("student_detail_data", detail);
+                        student_detail_list.innerHTML = student_detail_list.innerHTML + student_detail_data_html.trim();
+                    });
+                }
+
+                resolve("success");
+            } else {
+                console.error("error: ", response.status);
+                reject("error");
             }
-        } else {
-            console.error("error: ", response.status);
         }
-    }
-
-    request.onerror = function() {
-        console.error("Something went wrong while fetching student details!");
-    }
-
-    request.send(JSON.stringify(data));
+    
+        request.onerror = function() {
+            console.error("Something went wrong while fetching student details!");
+        }
+    
+        request.send(JSON.stringify(data));
+    });
 }
 
 
@@ -175,97 +191,20 @@ function remove_student_detail() {
 }
 
 
-function register_and_add_details() {
-    let data = {
-        name: document.getElementById("student_name").value,
-        nrc: document.getElementById("student_nrc").value,
-        dob: document.getElementById("student_dob").value,
-        phone_no: document.getElementById("student_phone_no").value,
-        email: document.getElementById("student_email").value,
-        gender: document.getElementById("student_gender").value,
-        nationality: document.getElementById("student_nationality").value,
-        permanent_address: document.getElementById("student_address").value
-    }
-
-    let request = new XMLHttpRequest();
-    request.open("POST", '/register');
-    request.setRequestHeader("Content-Type", "application/json");
-    
-    request.onload = function() {
-        if(request.status >= 200 && request.status < 400) {
-            let response = JSON.parse(request.responseText);
-            current_student = response;
-            save_to_localStorage("student", current_student);
-            console.log("current_student: ", current_student);
-
-            let success_response = false;
-            
-            if(request.status == 200) {
-                success_response = true;
-            }
-
-            if(success_response) {
-                if(!document.getElementById("successful_registration")){
-                    let student_container = document.getElementById("student_container");
-                    let register_success_html = generate_html("register_success");
-                    student_container.innerHTML = student_container.innerHTML + register_success_html;
-                }
-
-                setTimeout(function() {
-                    let successful_registration_message = document.getElementById("successful_registration");
-                    student_container.removeChild(successful_registration_message);
-
-                    let form_container = document.getElementById("form_container");
-                    let student_html = generate_html("student", current_student);
-                    let student_detail_html = generate_html("student_detail");
-                    form_container.innerHTML = student_html + student_detail_html;
-
-                    let student_gender_selection = document.getElementById('student_gender');
-                    for(let i = 0; i < student_gender_selection.options.length; i++) {
-                        let option = student_gender_selection.options[i];
-                        if (option.value === current_student.gender) {
-                            option.selected = true;
-                            break;
-                        }
-                    }
-
-                    let student_nationality_selection = document.getElementById('student_nationality');
-                    for(let i = 0; i < student_nationality_selection.options.length; i++) {
-                        let option = student_nationality_selection.options[i];
-                        if (option.value === current_student.nationality) {
-                            option.selected = true;
-                            break;
-                        }
-                    }
-
-                    check_student_details();
-                    submit_student_details();
-                    
-                }, 1000);
-            }
-        } else {
-            console.error("error: ", response.status);
-        }
-    }
-
-    request.onerror = function() {
-        console.error("Something went wrong while registering student!");
-    }
-
-    request.send(JSON.stringify(data));
-}
-
-
-function check_submit() {
+async function check_submit() {
     current_student = load_from_localStorage("student");
 
     details = load_from_localStorage("details");
 
     if(current_student) {
-        if(details.length > 0) {
-            submit_student_details();
+        if(details && details.length > 0) {
+            await register().then(async function(res) {
+                await submit_student_details();
+            });
         } else {
-            go_to_page("list");
+            await register().then(function(res) {
+                go_to_page("list");
+            });
         }
     } else {
         if(
@@ -274,11 +213,19 @@ function check_submit() {
             document.getElementById("student_email").value && document.getElementById("student_gender").value &&
             document.getElementById("student_nationality").value && document.getElementById("student_address").value
         ) {
-            register_and_add_details();
+            if(details && details.length > 0) {
+                await register().then(async function(res) {
+                    await submit_student_details();
+                });
+            } else {
+                await register().then(function(res) {
+                    go_to_page("list");
+                });
+            }
         } else {
             let detail_container = document.getElementById("detail_container");
-            let register_success_html = generate_html("register_fail");
-            detail_container.innerHTML = detail_container.innerHTML + register_success_html;
+            let register_fail_html = generate_html("register_fail");
+            detail_container.innerHTML = detail_container.innerHTML + register_fail_html;
         
             setTimeout(function() {
                 let fail_registration_message = document.getElementById("fail_registration");
@@ -290,46 +237,50 @@ function check_submit() {
 
 
 function submit_student_details() {
-    current_student = load_from_localStorage("student");
-
-    let data = {
-        details: details,
-        student_id: current_student.id
-    }
-
-    let request = new XMLHttpRequest();
-    request.open("POST", '/submit_details');
-    request.setRequestHeader("Content-Type", "application/json");
+    return new Promise(function(resolve, reject) {
+        current_student = load_from_localStorage("student");
     
-    request.onload = function() {
-        if(request.status >= 200 && request.status < 400) {
-            let response = JSON.parse(request.responseText);
-            details = response
-            details.forEach(function(detail) {
-                detail["detail_id"] = details.indexOf(detail);
-            })
-            save_to_localStorage("details", details);
-
-            let success_response = false;
-            
-            if(request.status == 200) {
-                success_response = true;
-            }
-
-            if(success_response){
-                go_to_page("list");
-            }
-        } else {
-            console.error("error: ", response.status);
+        let data = {
+            details: details,
+            student_id: current_student.id
         }
-    }
-
-    request.onerror = function() {
-        console.error("Something went wrong while submitting details!");
-    }
-
-    request.send(JSON.stringify(data));
     
+        let request = new XMLHttpRequest();
+        request.open("POST", '/submit_details');
+        request.setRequestHeader("Content-Type", "application/json");
+        
+        request.onload = function() {
+            if(request.status >= 200 && request.status < 400) {
+                let response = JSON.parse(request.responseText);
+                details = response
+                details.forEach(function(detail) {
+                    detail["detail_id"] = details.indexOf(detail);
+                })
+                save_to_localStorage("details", details);
+    
+                let success_response = false;
+                
+                if(request.status == 200) {
+                    success_response = true;
+                }
+    
+                if(success_response){
+                    go_to_page("list");
+                }
+
+                resolve("success");
+            } else {
+                console.error("error: ", response.status);
+                reject("error");
+            }
+        }
+    
+        request.onerror = function() {
+            console.error("Something went wrong while submitting details!");
+        }
+    
+        request.send(JSON.stringify(data));
+    });
 }
 
 
@@ -349,47 +300,78 @@ function go_to_page(page_name) {
 
 
 function check_students() {
-    let request = new XMLHttpRequest();
-    request.open("GET", "/get_students");
-    request.setRequestHeader("Content-Type", "application/json");
+    query_data["search"] = document.getElementById("search_bar").value;
+    return new Promise(function(resolve, reject) {
+        let request = new XMLHttpRequest();
+        request.open("POST", "/get_students");
+        request.setRequestHeader("Content-Type", "application/json");
+    
+        request.onload = function() {
+            if(request.status >= 200 && request.status < 400) {
+                let response = JSON.parse(request.responseText);
+                
+                students = response.students;
+                if(students && students.length > 0) {
+                    if(query_data["page"] > back_pagination_page) {
+                        pagination_students = pagination_students + students.length;
+                    } else {
+                        pagination_students = pagination_students - back_pagination_students;
+                    }
+                }
+                total_students = response.total_students;
+    
+                let success_response = false;
+    
+                if(request.status == 200) {
+                    success_response = true;
+                }
+    
+                if(success_response){
+                    let student_table_body = document.getElementById("student_table_body");
+                    students.forEach(function(student){
+                        let student_table_data_html = generate_html("student_table_data", student);
+                        student_table_body.innerHTML = student_table_body.innerHTML + student_table_data_html.trim();
+                    })
+                }
 
-    request.onload = function() {
-        if(request.status >= 200 && request.status < 400) {
-            let response = JSON.parse(request.responseText);
-            students = response
-
-            let success_response = false;
-
-            if(request.status == 200) {
-                success_response = true;
+                resolve("success");
+            } else {
+                console.error("error: ", response.status);
+                reject("error");
             }
-
-            if(success_response){
-                let student_table_body = document.getElementById("student_table_body");
-                students.forEach(function(student){
-                    let student_table_data_html = generate_html("student_table_data", student);
-                    student_table_body.innerHTML = student_table_body.innerHTML + student_table_data_html.trim();
-                })
-            }
-        } else {
-            console.error("error: ", response.status);
         }
-    }
-
-    request.onerror = function() {
-        console.error("Something went wrong while fetching student details!");
-    }
-
-    request.send();
+    
+        request.onerror = function() {
+            console.error("Something went wrong while fetching student details!");
+        }
+    
+        request.send(JSON.stringify(query_data));
+    });
 }
 
 
 function check_view_student() {
+    remove_from_localStorage("details");
     current_student = load_from_localStorage("student");
     
     let student_view_form = document.getElementById("student_view_form");
     let student_view_data_html = generate_html("student_view_data", current_student);
     student_view_form.innerHTML = student_view_form.innerHTML + student_view_data_html.trim();
+
+    check_student_details().then(function(res) {
+        let student_detail_list = document.getElementById("student_detail_list");
+        student_detail_list.innerHTML = "";
+        if(details && details.length > 0) {
+            details.forEach(function(detail) {
+                let student_detail_data_html = generate_html("details_view_data", detail);
+                student_detail_list.innerHTML = student_detail_list.innerHTML + student_detail_data_html.trim();
+            });
+        } else {
+            let student_detail_data_html = generate_html("no_details_view_data");
+            student_detail_list.innerHTML = student_detail_list.innerHTML + student_detail_data_html.trim();
+        }
+        remove_from_localStorage("details");
+    });
 }
 
 
@@ -452,51 +434,56 @@ function edit() {
 
 
 function remove_student() {
-    current_student = load_from_localStorage("student");
-
-    let data = {
-        id: current_student.id
-    }
-
-    let request = new XMLHttpRequest();
-    request.open("POST", "/remove_student");
-    request.setRequestHeader("Content-Type", "application/json");
-
-    request.onload = function() {
-        if(request.status >= 200 && request.status < 400) {
-            let response = JSON.parse(request.responseText);
-            let remove_data = response;
-
-            let success_response = false;
-
-            if(request.status == 200) {
-                success_response = true;
-            }
-
-            if(success_response) {
-                if(!document.getElementById("successful_delete")){
-                    let student_container = document.getElementById("student_container");
-                    let delete_success_html = generate_html("delete_success");
-                    student_container.innerHTML = student_container.innerHTML + delete_success_html;
+    return new Promise(function(resolve, reject) {
+        current_student = load_from_localStorage("student");
+    
+        let data = {
+            id: current_student.id
+        }
+    
+        let request = new XMLHttpRequest();
+        request.open("POST", "/remove_student");
+        request.setRequestHeader("Content-Type", "application/json");
+    
+        request.onload = function() {
+            if(request.status >= 200 && request.status < 400) {
+                let response = JSON.parse(request.responseText);
+                let remove_data = response;
+    
+                let success_response = false;
+    
+                if(request.status == 200) {
+                    success_response = true;
+                }
+    
+                if(success_response) {
+                    if(!document.getElementById("successful_delete")){
+                        let student_container = document.getElementById("student_container");
+                        let delete_success_html = generate_html("delete_success");
+                        student_container.innerHTML = student_container.innerHTML + delete_success_html;
+                    }
+    
+                    setTimeout(function() {
+                        let successful_delete_message = document.getElementById("successful_delete");
+                        student_container.removeChild(successful_delete_message);
+                        remove_from_localStorage("student");
+                        go_to_page("list");
+                    }, 1000);
                 }
 
-                setTimeout(function() {
-                    let successful_delete_message = document.getElementById("successful_delete");
-                    student_container.removeChild(successful_delete_message);
-                    remove_from_localStorage("student");
-                    go_to_page("list");
-                }, 1000);
+                resolve("success");
+            } else {
+                console.error("error: ", response.status);
+                reject("error");
             }
-        } else {
-            console.error("error: ", response.status);
         }
-    }
-
-    request.onerror = function() {
-        console.error("Something went wrong while removing student!");
-    }
-
-    request.send(JSON.stringify(data));
+    
+        request.onerror = function() {
+            console.error("Something went wrong while removing student!");
+        }
+    
+        request.send(JSON.stringify(data));
+    });
 }
 
 
@@ -516,9 +503,25 @@ function remove_from_localStorage(name) {
 }
 
 
-function record() {
+function export_records() {
     let student_data = students;
     // let details_data = details
+    student_data.forEach(function(student) {
+        var words = student.name.split(' ');
+
+        // Capitalize the first character of each word
+        var capitalizedWords = words.map(function(word) {
+            if (word.length > 0) {
+            return word.charAt(0).toUpperCase() + word.slice(1);
+            } else {
+            return word;
+            }
+        });
+
+        var capitalizedName = capitalizedWords.join(' ');
+
+        student.name = capitalizedName;
+    });
 
     let student_sheet = XLSX.utils.json_to_sheet(student_data);
     // let details_sheet = XLSX.utils.json_to_sheet(details_data);
@@ -537,13 +540,263 @@ function set_remove_detail_id(id = null) {
 }
 
 
+async function search_student() {
+    total_students = 0;
+    pagination_students = 0;
+    query_data["page"] = 0;
+    back_pagination_page = -1;
+    back_pagination_students = -1;
+
+    let student_table_body = document.getElementById("student_table_body");
+    student_table_body.innerHTML = "";
+
+    let pagination_container = document.getElementById("pagination_container");
+    pagination_container.innerHTML = "";
+    let pagination_back_html = "";
+    let pagination_next_html = ""; 
+
+    await check_students().then(function(res) {
+        if(query_data["page"] > 0) {
+            pagination_back_html = generate_html("pagination_back");
+        }
+        if(pagination_students < total_students) {
+            pagination_next_html = generate_html("pagination_next");
+        }
+        pagination_container.innerHTML = pagination_back_html + pagination_next_html;
+    });
+}
+
+
+async function paginate(method = '') {
+    back_pagination_page = query_data["page"];
+    back_pagination_students = students.length;
+
+    if(method == "next") {
+        query_data["page"] = query_data["page"] + 1;
+    } else if(method == "back") {
+        query_data["page"] = query_data["page"] - 1;
+    }
+    
+    let student_table_body = document.getElementById("student_table_body");
+    student_table_body.innerHTML = "";
+
+    let pagination_container = document.getElementById("pagination_container");
+    pagination_container.innerHTML = "";
+    let pagination_back_html = "";
+    let pagination_next_html = ""; 
+    
+    
+    await check_students().then(function(res) {
+        if(query_data["page"] > 0) {
+            pagination_back_html = generate_html("pagination_back");
+        }
+        if(pagination_students < total_students) {
+            pagination_next_html = generate_html("pagination_next");
+        }
+        pagination_container.innerHTML = pagination_back_html + pagination_next_html;
+    });
+}
+
+
+async function exportPDF() {
+    current_student = load_from_localStorage("student");
+    await check_student_details().then(function(res) {
+        let student_detail_list = document.getElementById("student_detail_list");
+        student_detail_list.innerHTML = "";
+        if(details && details.length > 0) {
+            details.forEach(function(detail) {
+                let student_detail_data_html = generate_html("details_view_data", detail);
+                student_detail_list.innerHTML = student_detail_list.innerHTML + student_detail_data_html.trim();
+            });
+        } else {
+            let student_detail_data_html = generate_html("no_details_view_data");
+            student_detail_list.innerHTML = student_detail_list.innerHTML + student_detail_data_html.trim();
+        }
+    });
+
+    let pdf_data = {
+        current_student: current_student,
+        details: details
+    }    
+    remove_from_localStorage("details");
+
+    let student_photo = await url_to_image(
+        current_student["profile_picture"] ? 
+        current_student["profile_picture"] : '../static/profiles/blank_profile_picture.png'
+    );
+
+    // Create an array to store the PDF content
+    const content = [];
+
+    // Add content to the PDF (example)
+    content.push({ text: 'Student Information', fontSize: 18, bold: true });
+
+    content.push({ text: 'Student: ', margin: [0, 10, 0, 0] });
+    content.push({ image: student_photo, width: 100, height: 100});
+    content.push({ 
+        text: `
+            id: ${pdf_data.current_student.id},
+            Name: ${pdf_data.current_student.name},
+            NRC: ${pdf_data.current_student.nrc},
+            Email: ${pdf_data.current_student.email},
+            Phone: ${pdf_data.current_student.phone_no},
+            Address: ${pdf_data.current_student.permanent_address},
+            Date of Birth: ${pdf_data.current_student.dob},
+            Gender: ${pdf_data.current_student.gender},
+            Nationality: ${pdf_data.current_student.nationality}
+        ` 
+    });
+    
+    content.push({ text: 'Details:', margin: [0, 10, 0, 0] });
+    for (const detail of pdf_data.details) {
+        content.push({ 
+            text: `
+                Year: ${detail.academic_year},
+                Mark 1: ${detail.mark1},
+                Mark 2: ${detail.mark2},
+                Mark 3: ${detail.mark3},
+                Remark: ${detail.remark}
+            `
+        });
+    }
+
+    // Create the PDF document
+    const docDefinition = {
+        content: content
+    };
+
+    // Generate the PDF
+    pdfMake.createPdf(docDefinition).download('student_information.pdf');
+}
+
+
+function url_to_image(url) {
+    return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.onload = function () {
+            const reader = new FileReader();
+            reader.onloadend = function () {
+                resolve(reader.result);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(xhr.response);
+        };
+        xhr.onerror = reject;
+        xhr.open('GET', url);
+        xhr.responseType = 'blob';
+        xhr.send();
+    }); 
+}
+
+
+function convert_profile_picture(event) {
+    const file = event.target.files[0];
+
+    if(file) {
+        // const reader = new FileReader();
+        // reader.onload = async function(event) {
+        //    // let binaryData = reader.result;
+        //     let binaryData = event.target.result;
+        //     current_student["profile_picture"] = binaryData;
+        // };
+        // reader.readAsBinaryString(file);
+
+        let profile_src = "../static/profiles/" + file.name;
+        current_student["profile_picture"] = profile_src;
+        save_to_localStorage("student", current_student);
+        
+        let student_profile_img = document.getElementById("student_profile_img");
+        student_profile_img.src = current_student["profile_picture"];
+    }
+}
+
+
+function upload_profile_picture() {
+    return new Promise(function(resolve, reject) {
+        let request = new XMLHttpRequest();
+        request.open("POST", '/profile_picture');
+        request.setRequestHeader("Content-Type", "application/json");
+        
+        request.onload = function() {
+
+        }
+
+        request.onerror = function() {
+
+        }
+
+        request.send(JSON.stringify({}));
+    });
+}
+
+
+function select_excel_file() {
+    let excel_input = document.getElementById("excel_input");
+    excel_input.click();
+}
+
+
+function import_records() {
+    const excel_input = document.getElementById("excel_input");
+    const file = excel_input.files[0];
+  
+    if (file) {
+      const reader = new FileReader();
+  
+      reader.onload = function(e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(worksheet, { header: 0 });
+        rows.forEach(function(row) {
+            row.profile_picture = row.profile_picture ? row.profile_picture : null;
+        });
+        
+        return new Promise(function(resolve, reject) {
+            let request = new XMLHttpRequest();
+            request.open("POST", '/import_records');
+            request.setRequestHeader("Content-Type", "application/json");
+            
+            request.onload = function() {
+                if(request.status >= 200 && request.status < 400) {
+                    let response = request.responseText
+        
+                    let success_response = false;
+                    
+                    if(request.status == 200) {
+                        success_response = true;
+
+                        let student_table_body = document.getElementById("student_table_body");
+                        student_table_body.innerHTML = "";
+                        check_students();
+                    }
+    
+                    resolve("success");
+                } else {
+                    console.error("error: ", response.status);
+                    reject("error");
+                }
+            }
+    
+            request.onerror = function() {
+                console.error("Something went wrong while importing students!");
+            }
+    
+            request.send(JSON.stringify(rows));
+        });
+      };
+  
+      reader.readAsArrayBuffer(file);
+    }
+  }
+
+
 if(window.location.href.includes("/list")) {
     check_students();
     remove_from_localStorage("student");
     remove_from_localStorage("details");
 } else if(window.location.href.includes("/view")) {
     check_view_student();
-    remove_from_localStorage("details");
 } else if(window.location.href.includes("/create")) {
     check_create_student();
 } else if(window.location.href.includes("/edit")) {

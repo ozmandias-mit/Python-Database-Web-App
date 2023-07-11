@@ -5,11 +5,11 @@
 {% endblock %}
 
 {% block main %}
-    <div class="col-12 p-5">
-        <div id="detail_container" class="col-12 p-0">
+    <div class="card col-6 p-0">
+        <div id="detail_container" class="scrollable_container h-100 p-2">
             <div class="d-flex justify-content-between align-items-center">
                 <h1 class="fw-bold">Add student details</h1>
-
+    
                 <button class="btn btn-dark" style="width: 100px; max-height: 40px;"
                     onclick="add_student_detail()"
                 >
@@ -17,10 +17,10 @@
                 </button>
             </div>
     
-            <form id="detail_form" class="row g-3">
+            <form id="detail_form" class="row g-0">
                 <ul id="student_detail_list" class="list-group ">
                     <li class="list-group-item" style="background-color: rgb(240, 240, 240);">
-                        <div class="row">
+                        <div class="row align-items-end">
                             <div class="col-md-2">
                                 <label for="detail_academic_year" class="form-label">Academic Year</label>
                                 <input id="detail_academic_year" class="form-control">
@@ -50,15 +50,15 @@
                     </li>
                 </ul>
             </form>
-    
-            <div class="col-12 pt-4">
-                <button
-                    class="btn btn-dark" style="width: 100%; max-height: 40px;"
-                    onclick="check_submit()"
-                >
-                    Submit Student
-                </button>
-            </div>
+        </div>
+        
+        <div class="d-flex justify-content-end col-12 p-2">
+            <button
+                class="btn btn-dark" style="width: 100px; max-height: 40px;"
+                onclick="check_submit()"
+            >
+                Submit
+            </button>
         </div>
     </div>
 

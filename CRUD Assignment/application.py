@@ -1,5 +1,5 @@
 from flask import Flask, render_template, redirect
-from helpers import register_student, fetch_students, fetch_student_details, add_student_detail, remove_student_detail, submit_student_details, remove_student_data
+from helpers import register_student, fetch_students, fetch_student_details, add_student_detail, remove_student_detail, submit_student_details, remove_student_data, import_student_data
 from errors import not_found_error
 
 current_student = {}
@@ -51,7 +51,7 @@ def remove_detail():
 def submit_details():
     return submit_student_details()
 
-@app.route("/get_students", methods=["GET"])
+@app.route("/get_students", methods=["POST"])
 def get_students():
     return fetch_students()
 
@@ -62,6 +62,10 @@ def get_details():
 @app.route("/remove_student", methods=["POST"])
 def remove_student():
     return remove_student_data()
+
+@app.route("/import_records", methods=["POST"])
+def import_records():
+    return import_student_data()
 
 @app.errorhandler(404)
 def error_404(error):

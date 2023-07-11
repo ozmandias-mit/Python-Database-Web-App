@@ -5,23 +5,31 @@
 {% endblock %}
 
 {% block main %}
-<div class="col-12 p-5">
-    <div id="student_container" class="col-12 p-0">
-        <h1 class="fw-bold">View</h1>
+<div class="col-12 p-4">
+    <div id="view_container" class="col-12 p-0">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1 class="fw-bold">Student information</h1>
+            <div class="d-flex justify-content-end">
+                <button class="btn btn-dark mx-1" style="width: 100px; max-height: 40px;" onclick="go_to_page('list')">Home</button>
+                <button class="btn btn-success" style="width: 100px; max-height: 40px;" onclick="exportPDF()">Export</button>
+            </div>
+        </div>
+        
+        <div class="d-flex col-12" style="height: 500px;">
+            <div class="justify-content-start card col-6 p-2 mt-4">
+                <p class="fw-bold">Student</p>
+                <form id="student_view_form" class="row g-1"></form>
+            </div>
 
-        <div class="d-flex justify-content-between align-items-center mt-5">
-            <p class="fw-bold">Student</p>
-            <button class="btn btn-dark" style="width: 100px; max-height: 40px;" onclick="go_to_page('list')">Home</button>
+            <div class="scrollable_container d-flex justify-content-start card col-6 p-2 mt-4">
+                <p class="fw-bold">Details</p>
+                <form id="student_detail_view_form" class="row g-1">
+                    <ul id="student_detail_list" class="list-group "></ul>
+                </form>
+            </div>
         </div>
 
-        <div class="d-flex justify-content-center card col-12 p-2 mt-3">
-            <form id="student_view_form" class="row g-2"></form>
-        </div>
-
-        <div class="d-flex justify-content-end col-12 pt-3">
-            <!-- <button class="btn btn-info mx-1" style="width: 100px; max-height: 40px;" onclick="go_to_page('student_detail')">
-                Details
-            </button> -->
+        <!-- <div class="d-flex justify-content-end col-12 pt-4">
             <button class="btn btn-warning mx-1" style="width: 100px; max-height: 40px;" onclick="go_to_page('edit')">
                 Edit
             </button>
@@ -30,7 +38,7 @@
             >
                 Remove
             </button>
-        </div>
+        </div> -->
     </div>
 </div>
 
@@ -38,15 +46,15 @@
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h1 class="modal-title fs-5" id="staticBackdropLabel">Modal title</h1>
+          <h1 class="modal-title fs-5" id="staticBackdropLabel">Remove Student</h1>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
           Do you want to remove this student?
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-danger" data-bs-dismiss="modal" onclick="remove_student()">Yes</button>
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="remove_student()">Yes</button>
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">No</button>
         </div>
       </div>
     </div>
