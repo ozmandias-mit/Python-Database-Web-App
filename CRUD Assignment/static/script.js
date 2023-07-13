@@ -625,46 +625,85 @@ async function exportPDF() {
         current_student["profile_picture"] : '../static/profiles/blank_profile_picture.png'
     );
 
-    // Create an array to store the PDF content
-    const content = [];
-
-    // Add content to the PDF (example)
-    content.push({ text: 'Student Information', fontSize: 18, bold: true });
-
-    content.push({ text: 'Student: ', margin: [0, 10, 0, 0] });
-    content.push({ image: student_photo, width: 100, height: 100});
-    content.push({ 
-        text: `
-            id: ${pdf_data.current_student.id},
-            Name: ${pdf_data.current_student.name},
-            NRC: ${pdf_data.current_student.nrc},
-            Email: ${pdf_data.current_student.email},
-            Phone: ${pdf_data.current_student.phone_no},
-            Address: ${pdf_data.current_student.permanent_address},
-            Date of Birth: ${pdf_data.current_student.dob},
-            Gender: ${pdf_data.current_student.gender},
-            Nationality: ${pdf_data.current_student.nationality}
-        ` 
-    });
-    
-    content.push({ text: 'Details:', margin: [0, 10, 0, 0] });
-    for (const detail of pdf_data.details) {
-        content.push({ 
-            text: `
-                Year: ${detail.academic_year},
-                Mark 1: ${detail.mark1},
-                Mark 2: ${detail.mark2},
-                Mark 3: ${detail.mark3},
-                Remark: ${detail.remark}
-            `
-        });
-    }
-
-    // Create the PDF document
-    const docDefinition = {
-        content: content
+    // Define table layout and styles
+    const tableLayout = {
+        defaultBorder: true,
+        hLineWidth: () => 1,
+        vLineWidth: () => 1,
+        hLineColor: () => '#dddddd',
+        vLineColor: () => '#dddddd',
     };
 
+    const profileTableData = { 
+        image: student_photo,
+        width: 50,
+        height: 50,
+        fit: [50, 50],
+        alignment: 'center'
+    };
+    const profileTable = {
+        body: [
+            [profileTableData]
+        ]
+    }
+
+    // Create a table for the student data
+    const studentTable = {
+        headerRows: 1,
+        // widths: ['*', '*', '*', '*', '*', '*', '*', '*'],
+        body: [
+          ['Name', 'NRC', 'DOB', 'Phone', 'Email', 'Gender', 'Nationality', 'Address'],
+          [
+            pdf_data.current_student.name,
+            pdf_data.current_student.nrc,
+            pdf_data.current_student.dob,
+            pdf_data.current_student.phone_no,
+            pdf_data.current_student.email,
+            pdf_data.current_student.gender,
+            pdf_data.current_student.nationality,
+            pdf_data.current_student.permanent_address
+          ],
+        ],
+      };
+
+    let detailsData = [];
+    if(pdf_data.details.length > 0) {
+        detailsData = pdf_data.details.map(function(detail) {
+            return [
+                detail.academic_year, detail.mark1, detail.mark2, detail.mark3, detail.remark
+            ]
+        })
+    } else {
+        detailsData.push(["None", "None", "None", "None", "None"]);
+    }
+    // Create a table for the details data
+    const detailsTable = {
+    headerRows: 1,
+    // widths: ['*', '*', '*', '*', '*'],
+    body: [
+        ['Year', 'Mark 1', 'Mark 2', 'Mark 3', 'Remark'],
+        ...detailsData
+    ],
+    };
+
+    // Create the PDF document definition
+    let docDefinition = {
+        content: [
+        { table: profileTable, layout: tableLayout, absolutePosition: { x: 500, y: 20 } },
+        { text: 'Student', style: 'header', absolutePosition: { x: 10, y: 80 } },
+        { table: studentTable, layout: tableLayout, absolutePosition: { x: 10, y: 110 } },
+        { text: 'Details', style: 'header', absolutePosition: { x: 10, y: 190 } },
+        { table: detailsTable, layout: tableLayout, absolutePosition: { x: 10, y: 220 } },
+        ],
+        styles: {
+            header: {
+                fontSize: 18,
+                bold: true,
+                margin: [0, 10, 0, 10],
+            }
+        },
+    };
+    
     // Generate the PDF
     pdfMake.createPdf(docDefinition).download('student_information.pdf');
 }
