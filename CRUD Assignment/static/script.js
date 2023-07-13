@@ -11,6 +11,8 @@ let query_data = {
 };
 let back_pagination_page = -1;
 let back_pagination_students = -1;
+let total_pages = 0;
+let page_maximum_students = 10;
 
 function register() {
     return new Promise(function(resolve, reject) {
@@ -319,6 +321,7 @@ function check_students() {
                     }
                 }
                 total_students = response.total_students;
+                total_pages = Math.ceil(total_students / page_maximum_students);
     
                 let success_response = false;
     
@@ -331,7 +334,10 @@ function check_students() {
                     students.forEach(function(student){
                         let student_table_data_html = generate_html("student_table_data", student);
                         student_table_body.innerHTML = student_table_body.innerHTML + student_table_data_html.trim();
-                    })
+                    });
+
+                    let pagination_text = document.getElementById("pagination_text");
+                    pagination_text.innerHTML = `<span>Page ${query_data["page"] + 1}/${total_pages}</span>`;
                 }
 
                 resolve("success");
